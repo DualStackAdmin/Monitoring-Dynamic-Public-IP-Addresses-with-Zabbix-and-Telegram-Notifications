@@ -3,7 +3,7 @@
 This repository provides a complete guide and the necessary configuration files to monitor dynamic public IP address changes on servers using Zabbix and send instant, formatted notifications to Telegram. This solution is ideal for environments with dynamic IPs, such as Starlink, failover internet connections, or other similar setups.
 
 ### Final Notification Format Example:
-![Successful Telegram Notification](image_2ad36d.png)
+![Successful Telegram Notification](./telegram-notification-example.png)
 
 ---
 
@@ -40,7 +40,7 @@ These steps "teach" the Zabbix agent how to find its own public IP address.
 ### Stage 2: Importing the Zabbix Template
 The `Public IP Monitoring.yaml` file provided in this repository contains the necessary Item and Trigger configuration.
 
-1.  Download the `Public IP Monitoring.yaml` file to your computer.
+1.  Download the `Public IP Monitoring.yaml` file.
 2.  In the Zabbix frontend, navigate to `Data collection` -> `Templates`.
 3.  Click the **`Import`** button in the top-right corner.
 4.  Choose the YAML file you downloaded and complete the import by clicking the **`Import`** button.
