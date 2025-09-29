@@ -11,7 +11,7 @@ The primary advantage of this solution is its template-based approach. You can i
 
 ## ✅ Prerequisites
 
-Before importing the template into Zabbix, you need to prepare two things:
+Before you begin, ensure you have the following:
 
 **1. Agent-Side Configuration (On the Monitored Server)**
 The Zabbix agent on the host you want to monitor must be "taught" how to find its own public IP. Run the following commands on the target server's terminal:
@@ -42,17 +42,20 @@ You will need the following information from Telegram:
 ## 🛠️ Zabbix Server Installation & Configuration Guide
 
 ### Step 1: Download and Import the Zabbix Template
-This is the core of the solution. First, we will download the template file directly to the Zabbix server and then import it.
+The core of this solution is the provided template file, which contains the necessary Item and Trigger.
 
-1.  Log in to your **Zabbix server's command-line interface (terminal)**.
-2.  Download the template file from this repository using the following command:
-    ```bash
-    curl -o "Public IP Monitoring.yaml" "[https://raw.githubusercontent.com/DualStackAdmin/Monitoring-Dynamic-Public-IP-Addresses-with-Zabbix-and-Telegram-Notifications/main/Public%20IP%20Monitoring.yaml](https://raw.githubusercontent.com/DualStackAdmin/Monitoring-Dynamic-Public-IP-Addresses-with-Zabbix-and-Telegram-Notifications/main/Public%20IP%20Monitoring.yaml)"
-    ```
-3.  Now, in your **Zabbix frontend**, navigate to `Data collection` -> `Templates`.
-4.  Click the **`Import`** button in the top-right corner.
-5.  Click **"Choose file"** and select the `Public IP Monitoring.yaml` file you just downloaded.
-6.  Complete the import by clicking the **`Import`** button.
+1.  **Download the Template File:**
+    Click the link below to download the template file (`Public IP Monitoring.yaml`) to your local computer.
+    
+    [**➡️ Download `Public IP Monitoring.yaml` Template File**](./Public%20IP%20Monitoring.yaml)
+
+    *(Note: If the download link opens a text file in your browser, simply right-click and "Save As..." to save the file.)*
+
+2.  **Import the Template into Zabbix:**
+    * In your Zabbix frontend, navigate to `Data collection` -> `Templates`.
+    * Click the **`Import`** button in the top-right corner.
+    * Click **"Choose file"** and select the `Public IP Monitoring.yaml` file you just downloaded.
+    * Complete the import by clicking the **`Import`** button.
 
 > **What's inside the template?**
 > * **Item (`Public IP Address`):** Collects the public IP every 5 minutes.
@@ -102,6 +105,6 @@ This is the final step where you activate the monitoring.
 3.  In the "Link new templates" field, find and add the **`Public IP Monitoring`** template.
 4.  Click the **`Update`** button.
 
-As you rightly pointed out, the great advantage here is that you can also link this template to **entire host groups** to enable this monitoring for many servers at once.
+The great advantage here is that you can also link this template to **entire host groups** to enable this monitoring for many servers at once.
 
 **Setup is complete!** Any host or host group linked to this template will now automatically report public IP changes.
