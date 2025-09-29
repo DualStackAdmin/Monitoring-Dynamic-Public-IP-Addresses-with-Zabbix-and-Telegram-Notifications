@@ -1,0 +1,24 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+    - uuid: 36bff6c29af64692839d077febfc7079
+      name: 'Templates/Network devices'
+  templates:
+    - uuid: 9f1167fa485c4914bc4f8d8ebfcebd8a
+      template: 'Public IP Monitoring'
+      name: 'Public IP Monitoring'
+      groups:
+        - name: 'Templates/Network devices'
+      items:
+        - uuid: 9144a15bfa7740fb886bd57d680990b5
+          name: 'Server Public IP Address'
+          key: public.ip
+          delay: 5m
+          history: 90d
+          value_type: TEXT
+          triggers:
+            - uuid: 3201ec911121478eb55057c7db2d7680
+              expression: 'last(/Public IP Monitoring/public.ip) <> last(/Public IP Monitoring/public.ip, #2)'
+              name: 'Public IP Address on {HOST.NAME} has CHANGED!'
+              priority: HIGH
+              type: MULTIPLE
