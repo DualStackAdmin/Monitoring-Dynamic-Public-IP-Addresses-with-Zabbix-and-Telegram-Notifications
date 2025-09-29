@@ -90,7 +90,9 @@ This Action connects the trigger from our template to your Telegram media type.
 3.  **Operations Tab:** Define the custom messages for your alerts.
     * **Problem Message:**
         ```html
-        🚨 <b>Public IP Address Changed!</b> 🚨<b>Server:</b> {HOST.NAME}<b>Problem:</b> {TRIGGER.NAME}<b>New IP Address:</b> {ITEM.LASTVALUE1}<b>Time of Change:</b> {EVENT.DATE} {EVENT.TIME}
+        🚨 <b>Public IP Address Changed!</b>
+
+        🚨<b>Server:</b> {HOST.NAME}<b>Problem:</b> {TRIGGER.NAME}<b>New IP Address:</b> {ITEM.LASTVALUE1}<b>Time of Change:</b> {EVENT.DATE} {EVENT.TIME}
         ```
     * **Recovery Message:**
         ```html
