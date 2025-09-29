@@ -1,62 +1,72 @@
-# Monitoring Dynamic Public IP Addresses with Zabbix and Telegram Notifications
+# Zabbix Template: Dynamic Public IP Monitoring via Telegram
 
-This repository provides a complete guide and the necessary configuration files to monitor dynamic public IP address changes on servers using Zabbix and send instant, formatted notifications to Telegram. This solution is ideal for environments with dynamic IPs, such as Starlink, failover internet connections, or other similar setups.
+This repository provides a pre-built Zabbix 7.x template (`Public IP Monitoring.yaml`) and a step-by-step guide to automatically monitor server public IP address changes and receive instant Telegram notifications.
+
+The primary advantage of this solution is its template-based approach. You can import the provided template, follow a few simple configuration steps, and then apply this monitoring to dozens or even hundreds of hosts or entire host groups with ease. This method is ideal for environments with dynamic IPs, such as Starlink or failover internet connections.
 
 ### Final Notification Format Example:
 ![Successful Telegram Notification](./telegram-notification-example.png)
 
 ---
 
-## ⚙️ Architecture and Workflow
-The system consists of the following components and works according to this logic:
-1.  **Zabbix Agent (`UserParameter`)**: The agent on the monitored server learns its own public IP address using a custom command.
-2.  **Zabbix Template (`Item` & `Trigger`)**: A Zabbix template collects this IP data from the agent regularly (`Item`) and creates an alert (`Trigger`) whenever the IP address changes.
-3.  **Zabbix Action**: As soon as the alert is triggered, an Action rule is executed.
-4.  **Telegram Webhook**: The Action sends a pre-formatted message to your Telegram bot using Zabbix's built-in Telegram media type.
+## ✅ Prerequisites
 
----
+Before importing the template into Zabbix, you need to prepare two things:
 
-## 🛠️ Step-by-Step Installation Guide
+**1. Agent-Side Configuration (On the Monitored Server)**
+The Zabbix agent on the host you want to monitor must be "taught" how to find its own public IP. Run the following commands on the target server's terminal:
 
-### Stage 1: Agent-Side Configuration (On the Monitored Server)
-These steps "teach" the Zabbix agent how to find its own public IP address.
-
-1.  **Create the Custom Parameter (UserParameter):**
-    Create a new key named `public.ip` in the agent's configuration directory. This key will return the server's public IP via a `curl` command when called.
+* **Create the Custom Parameter (UserParameter):**
     ```bash
     echo 'UserParameter=public.ip,curl -s ifconfig.me' | sudo tee /etc/zabbix/zabbix_agent2.d/public_ip.conf
     ```
-2.  **Restart the Agent:**
-    Restart the agent for the new configuration to take effect.
+
+* **Restart the Agent:**
     ```bash
     sudo systemctl restart zabbix-agent2
     ```
-3.  **Verify the Configuration:**
-    Test that the parameter is working correctly. This command should return your server's public IP address.
+
+* **Verify the Configuration:**
+    Test that the key is working correctly. This command should return the server's public IP.
     ```bash
     zabbix_agent2 -t public.ip
     ```
 
-### Stage 2: Importing the Zabbix Template
-The `Public IP Monitoring.yaml` file provided in this repository contains the necessary Item and Trigger configuration.
+**2. Telegram Bot Information**
+You will need the following information from Telegram:
+* A **Bot Token** from `@BotFather`.
+* Your personal or group **Chat ID** from `@userinfobot`.
 
-1.  Download the `Public IP Monitoring.yaml` file.
-2.  In the Zabbix frontend, navigate to `Data collection` -> `Templates`.
-3.  Click the **`Import`** button in the top-right corner.
-4.  Choose the YAML file you downloaded and complete the import by clicking the **`Import`** button.
+---
 
-> **Template Contents:**
-> * **Item (`Server Public IP Address`):** Collects data using the `public.ip` key every 5 minutes.
-> * **Trigger (`Public IP Address on {HOST.NAME} has CHANGED!`):** Activates when the last received IP value is different from the previous one. The **"Problem event generation mode"** is set to **`Multiple`** to ensure that every IP change (even flapping between two IPs) generates a new notification.
+## 🛠️ Zabbix Server Installation & Configuration Guide
 
-### Stage 3: Setting up the Telegram Notification Channel
-1.  Create a bot with **`@BotFather`** in Telegram to get your **HTTP API Token**, and get your unique **Chat ID** from **`@userinfobot`**.
-2.  In Zabbix, navigate to `Alerts` -> `Media types` and select `Telegram`. Configure the **`Parameters`** tab with the following 8 parameters (delete any old ones and add these):
+### Step 1: Download and Import the Zabbix Template
+This is the core of the solution. First, we will download the template file directly to the Zabbix server and then import it.
 
+1.  Log in to your **Zabbix server's command-line interface (terminal)**.
+2.  Download the template file from this repository using the following command:
+    ```bash
+    curl -o "Public IP Monitoring.yaml" "[https://raw.githubusercontent.com/DualStackAdmin/Monitoring-Dynamic-Public-IP-Addresses-with-Zabbix-and-Telegram-Notifications/main/Public%20IP%20Monitoring.yaml](https://raw.githubusercontent.com/DualStackAdmin/Monitoring-Dynamic-Public-IP-Addresses-with-Zabbix-and-Telegram-Notifications/main/Public%20IP%20Monitoring.yaml)"
+    ```
+3.  Now, in your **Zabbix frontend**, navigate to `Data collection` -> `Templates`.
+4.  Click the **`Import`** button in the top-right corner.
+5.  Click **"Choose file"** and select the `Public IP Monitoring.yaml` file you just downloaded.
+6.  Complete the import by clicking the **`Import`** button.
+
+> **What's inside the template?**
+> * **Item (`Public IP Address`):** Collects the public IP every 5 minutes.
+> * **Trigger (`Public IP Address on {HOST.NAME} has CHANGED!`):** Fires when the IP address value changes. It is configured in **`Multiple`** event generation mode to ensure a notification is sent for *every* change.
+
+### Step 2: Configure the Telegram Media Type
+Ensure your Zabbix `Telegram` media type is configured correctly to send notifications.
+
+1.  Navigate to `Alerts` -> `Media types` and select `Telegram`.
+2.  In the `Parameters` tab, ensure you have the following 8 parameters configured:
     * `alert_message`:
-      ```html
-      <b>{EVENT.SEVERITY}</b>: {EVENT.NAME}<b>Host</b>: {HOST.NAME}<b>Time</b>: {EVENT.TIME} on {EVENT.DATE}<pre>{ITEM.NAME}: {ITEM.VALUE}{TRIGGER.URL}</pre>
-      ```
+        ```html
+        <b>{EVENT.SEVERITY}</b>: {EVENT.NAME}<b>Host</b>: {HOST.NAME}<b>Time</b>: {EVENT.TIME} on {EVENT.DATE}<pre>{ITEM.NAME}: {ITEM.VALUE}{TRIGGER.URL}</pre>
+        ```
     * `alert_subject`: `{EVENT.STATUS}: {EVENT.NAME} on {HOST.NAME}`
     * `api_chat_id`: Your **Chat ID**.
     * `api_parse_mode`: `HTML`
@@ -64,35 +74,34 @@ The `Public IP Monitoring.yaml` file provided in this repository contains the ne
     * `event_nseverity`: `{EVENT.NSEVERITY}`
     * `event_update_status`: `{EVENT.UPDATE.STATUS}`
     * `event_value`: `{EVENT.VALUE}`
+3.  Navigate to `Alerts` -> `Users` and add the Telegram media to your user profile.
 
-3.  Navigate to `Alerts` -> `Users`, go to your user profile, and add your `Telegram` media with your **Chat ID** in the `Media` tab.
-
-### Stage 4: Creating the Action (Trigger Action)
-This is the logic that connects the trigger to the Telegram notification.
+### Step 3: Create the Notification Action
+This Action connects the trigger from our template to your Telegram media type.
 
 1.  Navigate to `Alerts` -> `Actions` -> `Trigger actions` and create a new Action.
-2.  In the **`Conditions`** tab, create the following universal condition to ensure the action works for any host using the template:
+2.  **Conditions Tab:** Create a universal condition that works for any host using the template:
     * **Type:** `Event name`
     * **Operator:** `contains`
     * **Value:** `Public IP Address has CHANGED!`
-3.  In the **`Operations`** tab, create message templates for problem and recovery notifications.
+3.  **Operations Tab:** Define the custom messages for your alerts.
     * **Problem Message:**
-      * **Subject:** `🚨 IP Changed: {HOST.NAME}`
-      * **Message:**
         ```html
         🚨 <b>Public IP Address Changed!</b> 🚨<b>Server:</b> {HOST.NAME}<b>Problem:</b> {TRIGGER.NAME}<b>New IP Address:</b> {ITEM.LASTVALUE1}<b>Time of Change:</b> {EVENT.DATE} {EVENT.TIME}
         ```
     * **Recovery Message:**
-      * **Subject:** `✅ OK: IP Address Stable on {HOST.NAME}`
-      * **Message:**
         ```html
         ✅ <b>Resolved: Public IP Address is Stable</b><b>Server:</b> {HOST.NAME}<b>Problem:</b> {TRIGGER.NAME}<b>Time of Recovery:</b> {EVENT.RECOVERY.DATE} {EVENT.RECOVERY.TIME}
         ```
 
-### Stage 5: Putting It All Together
-1.  Navigate to `Data collection` -> `Hosts` and select the host you want to monitor.
+### Step 4: Link the Template to Your Hosts
+This is the final step where you activate the monitoring.
+
+1.  Navigate to `Data collection` -> `Hosts` and select the host (or multiple hosts) you want to monitor.
 2.  Go to the `Templates` tab.
-3.  In the "Link new templates" field, find and add the **`Public IP Monitoring`** template you just imported.
+3.  In the "Link new templates" field, find and add the **`Public IP Monitoring`** template.
 4.  Click the **`Update`** button.
 
-**Setup is complete!** Now, any host to which you apply this template will automatically detect public IP changes and send you a formatted notification via Telegram, just like the one shown in the example.
+As you rightly pointed out, the great advantage here is that you can also link this template to **entire host groups** to enable this monitoring for many servers at once.
+
+**Setup is complete!** Any host or host group linked to this template will now automatically report public IP changes.
